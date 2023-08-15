@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_my_template/home.dart';
 import 'package:flutter_my_template/presentation/blocs/connectivity/connectivity_cubit.dart';
 
 void main() {
@@ -14,7 +15,30 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  int c = 0;
+/*
+  void _showConnectionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Connection Status'),
+          content: Text(
+            _isConnected ? 'Internet is connected.' : 'No internet connection.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+*/
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -24,64 +48,65 @@ class _MainAppState extends State<MainApp> {
           )
         ],
         child: MaterialApp(
-          darkTheme: ThemeData.light(),
-          themeMode: ThemeMode.system,
+          // darkTheme: ThemeData.from(
+          //   colorScheme: ColorScheme.fromSeed(
+          //     seedColor: Colors.cyanAccent,
+          //   ),
+          // ),
+          theme: ThemeData(
+              useMaterial3: true,
+              visualDensity: VisualDensity.adaptivePlatformDensity,
+              fontFamily: 'Poppins'),
           home: Scaffold(
-            backgroundColor: c == 0 ? Colors.grey[100] : Colors.grey,
+            backgroundColor: Colors.grey[100],
             appBar: AppBar(
               title: const Text('hello'),
             ),
-            body: BlocBuilder<InternetCubit, InternetCubitState>(
+            body: BlocConsumer<InternetCubit, InternetCubitState>(
+              listener: (context, state) => {
+                if (state == InternetCubitState.Lost)
+                  {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Data Lost'),
+                            content: const Text('Conection Lost'),
+                            actions: [
+                              TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('Close'))
+                            ],
+                          );
+                        })
+                  }
+                else
+                  {
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            content: const Text(
+                              'Welcome back',
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('close'),
+                              )
+                            ],
+                          );
+                        })
+                  }
+              },
               builder: (context, state) {
-                if (state == InternetCubitState.Gained) {
-                  c = 0;
-
-                  return const Center(
-                    child: Text('Hello World!'),
-                  );
-                } else if (state == InternetCubitState.Lost) {
-                  return const InternetConnectedWidget();
-                } else {
-                  return InternetConnectedWidget();
-                  // return const Center(
-                  //   child: Text('Hello Initial.'),
-                  // );
-                }
+                // return const Center(
+                //   child: Text('Hello World!'),
+                return const HomeScreen();
               },
             ),
           ),
         ));
-  }
-}
-
-class InternetConnectedWidget extends StatelessWidget {
-  const InternetConnectedWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: 220,
-        height: 150,
-        child: Dialog(
-          backgroundColor: Colors.grey[300],
-          child: const Center(
-              child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(
-                height: 10,
-              ),
-              Text(
-                'Connection Lost',
-                style: TextStyle(fontSize: 16),
-              ),
-            ],
-          )),
-        ),
-      ),
-    );
   }
 }
